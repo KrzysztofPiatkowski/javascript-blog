@@ -17,7 +17,9 @@
   }
 
   /* add class 'active' to the clicked link */
-  
+  const clickedElement = this.classList.add('active');
+  console.log('clickedElement:', clickedElement);
+  console.log('clickedElement (with plus):'+ clickedElement);
 
   /* remove class 'active' from all articles */
   const activeArticles = document.querySelectorAll('.post .active');
