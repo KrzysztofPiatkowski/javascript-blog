@@ -98,9 +98,56 @@ const optArticleSelector = '.post',
 optTitleSelector = '.post-title',
 optTitleListSelector = '.titles',
 optArticleTagsSelector = '.post-tags .list',
-optArticleAuthorSelector = '.post-author';
+optArticleAuthorSelector = '.post-author',
+optTagsListSelector = '.tags.list',
+optCloudClassCount = 5,
+optCloudClassPrefix = 'tag-size-',
+optAuthorsListSelector = '.authors.list';
+
+function calculateTagsParams(tags) {
+  /* tagsObject = {};
+  const newArray = Object.values(tags);
+  let min = newArray[0];
+  let max = 0;
+  for (let i=1; i<newArray.length; i++) {
+    if (newArray[i]<min) {
+      min = newArray[i];
+    } else if (newArray[i]>max) {
+      max = newArray[i];
+    }
+  }
+  tagsObject.min = min;
+  tagsObject.max = max;
+  return tagsObject; */
+
+  const params = {max: 0, min: 999999};
+
+  for (let tag in tags) {
+    console.log(tag + ' is used ' + tags[tag] + ' times');
+    if (tags[tag] > params.max) {
+      params.max = tags[tag];
+    }
+    if (tags[tag] < params.min) {
+      params.min = tags[tag];
+    }
+  }
+  return params;
+}
+
+function calculateTagClass (count, params) {
+  const normalizedCount = count - params.min;
+  const normalizedMax = params.max - params.min;
+  const percentage = normalizedCount / normalizedMax;
+  const classNumber = Math.floor( percentage * (optCloudClassCount - 1) + 1 );
+  return `${optCloudClassPrefix}${classNumber}`;
+}
 
 function generateTags(){
+  /* [NEW] create a new variable allTags with an empty array 
+  let allTags = []; */
+  /* [NEW] create a new variable allTags with an empty object */
+  let allTags = {};
+
   /* find all articles */
   const articles = document.querySelectorAll(optArticleSelector);
 
@@ -134,6 +181,19 @@ function generateTags(){
       html = html + linkHTML;
       console.log(html);
 
+      /* [NEW] check if this link is NOT already in allTags 
+      if(allTags.indexOf(linkHTML) == -1){
+         [NEW] add generated code to allTags array
+        allTags.push(linkHTML);
+      } */
+     /* [NEW] check if this link is NOT already in allTags */
+      if(!allTags[tag]) {
+      /* [NEW] add tag to allTags object */
+        allTags[tag] = 1;
+      } else {
+        allTags[tag]++;
+      }
+
     /* END LOOP: for each tag */
     }
 
@@ -142,6 +202,34 @@ function generateTags(){
 
   /* END LOOP: for every article: */
   }
+  /* [NEW] find list of tags in right column */
+  const tagList = document.querySelector(optTagsListSelector);
+
+  /* [NEW] add html from allTags to tagList
+  tagList.innerHTML = allTags.join(' '); */
+  console.log(allTags);
+
+  const tagsParams = calculateTagsParams(allTags);
+  console.log('tagsParams:', tagsParams)
+  /* [NEW] create variable for all links HTML code */
+  let allTagsHTML = '';
+
+  /* [NEW] START LOOP: for each tag in allTags: */
+  for(let tag in allTags){
+    /* [NEW] generate code of a link and add it to allTagsHTML */
+    //allTagsHTML += '<li><a href="#tag-'+tag+'">'+tag+'</a></li> ' + ' (' + allTags[tag] + ') ';
+    const tagLinkHTML = '<li><a href="#tag-'+tag+'" class="' + calculateTagClass(allTags[tag], tagsParams) +'">'+tag+'</a></li> ';
+    console.log('tagLinkHTML:', tagLinkHTML);
+
+    /* [NEW] generate code of a link and add it to allTagsHTML */
+    allTagsHTML += tagLinkHTML;
+
+  }
+  /* [NEW] END LOOP: for each tag in allTags: */
+
+  /*[NEW] add HTML from allTagsHTML to tagList */
+  tagList.innerHTML = allTagsHTML;
+
 }
 
 generateTags();
@@ -159,11 +247,11 @@ function tagClickHandler(event){
 
   /* make a new constant "tag" and extract tag from the "href" constant */
   const tag = href.replace('#tag-', '');
-  console.log(tag);
+  //console.log(tag);
 
   /* find all tag links with class active */
   const activeTagLinks = document.querySelectorAll('a.active[href^="#tag-"]');
-  console.log(activeTagLinks);
+  //console.log(activeTagLinks);
 
   /* START LOOP: for each active tag link */
   for (let activeTagLink of activeTagLinks) {
@@ -176,7 +264,7 @@ function tagClickHandler(event){
 
   /* find all tag links with "href" attribute equal to the "href" constant */
   const tagLinks = document.querySelectorAll('a[href="' + href + '"]');
-  console.log('Taglink to : '+tagLinks);
+  //console.log('Taglink to : '+tagLinks);
 
   /* START LOOP: for each found tag link */
   for (let tagLink of tagLinks) {
@@ -208,6 +296,9 @@ function addClickListenersToTags(){
 addClickListenersToTags();
 
 function generateAuthors(){
+
+  /* [NEW] create a new variable allAuthors with an empty object */
+  let allAuthors = [];
   /* find all articles */
   const articles = document.querySelectorAll(optArticleSelector);
 
@@ -231,13 +322,24 @@ function generateAuthors(){
 
       /* add generated code to html variable */
       html = html + linkHTML;
-      console.log(html);
+      //console.log(html);
+
+      /* [NEW] check if this link is NOT already in allAuthors */
+      if(allAuthors.indexOf(linkHTML) == -1){
+        /* [NEW] add generated code to allTags array */
+        allAuthors.push(linkHTML);
+      }
 
     /* insert HTML of all the links into the author wrapper */
     authorWrapper.insertAdjacentHTML('beforeend', html);
 
   /* END LOOP: for every article: */
   }
+   /* [NEW] find list of tags in right column */
+   const authorList = document.querySelector(optAuthorsListSelector);
+
+   /* [NEW] add html from allTags to tagList */
+   authorList.innerHTML = allAuthors.join(' ');
 }
 
 generateAuthors();
@@ -254,11 +356,11 @@ function authorClickHandler(event){
 
   /* make a new constant "author" and extract articleAuthor from the "href" constant */
   const author = href.replace('#author-', '');
-  console.log(author);
+  //console.log(author);
 
   /* find all tag links with class active */
   const activeAuthorLinks = document.querySelectorAll('a.active[href^="#author-"]');
-  console.log(activeAuthorLinks);
+  //console.log(activeAuthorLinks);
 
   /* START LOOP: for each active tag link */
   for (let activeAuthorLink of activeAuthorLinks) {
@@ -271,7 +373,7 @@ function authorClickHandler(event){
 
   /* find all tag links with "href" attribute equal to the "href" constant */
   const authorLinks = document.querySelectorAll('a[href="' + href + '"]');
-  console.log('Authorlink to : '+authorLinks);
+  //console.log('Authorlink to : '+authorLinks);
 
   /* START LOOP: for each found tag link */
   for (let authorLink of authorLinks) {
